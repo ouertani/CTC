@@ -13,21 +13,25 @@ import static java.lang.invoke.MethodType.*;
 public class JzonWriterFactory {
 
 
-    public static <T> Writer<T> writer(Class<T> t) {
+    public static <T> Writer<T> writer(Class<T> clazz) {
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
         MethodHandles.Lookup lookup = MethodHandles.lookup();
 
         try {
-            String s = t.getCanonicalName() + JzonConstants.MAPPER_CLASS_SUFFIX;
-            Class<Writer<@Jzon T>> mapperImpl  = (Class<Writer<@Jzon T>>) classLoader.loadClass(s);
+            String className = clazz.getCanonicalName() + JzonConstants.MAPPER_CLASS_SUFFIX;
+            Class<Writer<@Jzon T>> mapperImpl  = (Class<Writer<@Jzon T>>) classLoader.loadClass(className);
             MethodHandle constructor = lookup.findConstructor(mapperImpl, methodType(Void.class));
             return (Writer<T>) constructor.invoke();
         }  catch (Throwable throwable) {
-            throwable.printStackTrace();
+            toRuntimeException(throwable);
         }
         return null;
+    }
+    @SuppressWarnings("unchecked")
+    private static <T extends Throwable> void toRuntimeException(Throwable throwable) throws T{
+        throw (T) throwable;
     }
 
 }
