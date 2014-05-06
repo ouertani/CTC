@@ -14,6 +14,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import static org.technozor.jzon.internal.processor.JzonAnnotationVerifier.*;
@@ -22,7 +23,7 @@ import static org.technozor.jzon.internal.processor.JzonAnnotationVerifier.*;
 /**
  * Created by slim on 4/28/14.
  */
-public class CodeAnalyzerTreeVisitor extends ElementScanner8  {
+public class CodeAnalyzerTreeVisitor extends ElementScanner8<Void,ProcessingEnvironment>  {
 
     final ProcessingEnvironment pe;
     final Elements elementUtils ;
@@ -34,7 +35,10 @@ public class CodeAnalyzerTreeVisitor extends ElementScanner8  {
     static final Predicate<Element> annotationPredicate = x -> x.getKind().equals(ElementKind.ANNOTATION_TYPE);
     static final Function<Element,TypeElement> castToTypeElement = x -> (TypeElement) x;
     private final Predicate<TypeElement >isJzonAnnotationPresent ;
-    private final Messager messager;
+
+    private final Function<ProcessingEnvironment,Elements> toElems = ProcessingEnvironment::getElementUtils;
+
+    private final BiPredicate<TypeElement,Class> hasQualifiedName;
 
 
 
@@ -42,43 +46,41 @@ public class CodeAnalyzerTreeVisitor extends ElementScanner8  {
 
     public CodeAnalyzerTreeVisitor(ProcessingEnvironment pe) {
         this.pe = pe;
-        elementUtils = pe.getElementUtils();
-        writerPredicate = x ->  elementUtils.getName(Writer.class.getCanonicalName()).equals(x.getQualifiedName());
-        jzonPredicate   = x ->   elementUtils.getName(Jzon.class.getCanonicalName()).equals(x.getQualifiedName());
+        elementUtils = toElems.apply(pe);
+        hasQualifiedName=  (x,y) -> elementUtils.getName(y.getCanonicalName()).equals(x.getQualifiedName());
+        writerPredicate = x ->  hasQualifiedName.test(x,Writer.class);
+        jzonPredicate   = x ->   hasQualifiedName.test(x, Jzon.class);
         typeUtils = pe.getTypeUtils();
         isJzonAnnotationPresent = x -> isJzonAnnotationPresent(x);
-        messager = pe.getMessager();
+
     }
 
+    @Override
+    public Void visitVariable(VariableElement e, ProcessingEnvironment processingEnvironment) {
 
-   @Override
-    public Object visitVariable(VariableElement e, Object aVoid) {
+        try {
+            TypeMirror typeMirror = e.asType();
+            Element asElement = typeUtils.asElement(typeMirror);
+            if (asElement.getKind().isInterface()
+                    &&  writerPredicate.test((TypeElement) asElement) ==true
+                    &&  declaredPredicate.test(typeMirror)) {
 
-       try {
-           TypeMirror typeMirror = e.asType();
-           Element asElement = typeUtils.asElement(typeMirror);
-           if (asElement.getKind().isInterface()
-                   &&  writerPredicate.test((TypeElement) asElement) ==true
-                   &&  declaredPredicate.test(typeMirror)) {
+                DeclaredType dt = (DeclaredType) typeMirror;
 
-                   DeclaredType dt = (DeclaredType) typeMirror;
+                dt.getTypeArguments()
+                        .stream()
+                        .map(typeUtils::asElement)
+                        .filter(x -> x.getKind().isClass())
+                        .map(castToTypeElement)
+                        .filter(isJzonAnnotationPresent.negate())
+                        .forEach(_notChecked::add);
+            }
 
-                    dt.getTypeArguments()
-                           .stream()
-                           .map(typeUtils::asElement)
-                           .filter(x -> x.getKind().isClass())
-                           .map(castToTypeElement)
-                           .filter(isJzonAnnotationPresent.negate())
-                           .forEach(_notChecked::add);
-           }
+        } catch (Exception ex) {
 
-      } catch (Exception ex) {
-
-       }
-
-       return super.visitVariable(e, aVoid);
+        }
+        return super.visitVariable(e, processingEnvironment);
     }
-
 
     boolean isJzonAnnotationPresent(TypeElement typeElement) {
         return  typeElement.getAnnotationMirrors()
@@ -93,6 +95,5 @@ public class CodeAnalyzerTreeVisitor extends ElementScanner8  {
 
     }
 
-    private BiConsumer<ProcessingEnvironment,Exception> note = (p,e) -> p.getMessager().printMessage(Diagnostic.Kind.NOTE, e.getMessage());
 
 }

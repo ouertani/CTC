@@ -18,7 +18,7 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 public class JzonAnnotationVerifier extends AbstractProcessor {
 
     public static Set<TypeElement> _notChecked = new HashSet<>();
-    private Consumer<TypeElement> error = (e ) -> processingEnv.getMessager().printMessage(ERROR, e.getQualifiedName() +" must be annotated by @Jzon annotation !");
+    private Consumer<TypeElement> error = (e ) -> processingEnv.getMessager().printMessage(ERROR, e.getQualifiedName() +" must be annotated by @Jzon annotation !" );
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {

@@ -5,7 +5,7 @@ import org.technozor.jzon.Jzon;
 /**
  * Created by slim on 4/25/14.
  */
-@Jzon
+//@Jzon
 public class Car {
 
     public String power = "3";
