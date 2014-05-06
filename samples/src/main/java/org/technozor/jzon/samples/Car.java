@@ -8,5 +8,5 @@ import org.technozor.jzon.Jzon;
 //@Jzon
 public class Car {
 
-    public String power = "3";
+    public String power = "four";
 }
