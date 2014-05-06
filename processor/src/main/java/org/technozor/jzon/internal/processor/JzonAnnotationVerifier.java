@@ -3,28 +3,29 @@ package org.technozor.jzon.internal.processor;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.*;
+import javax.lang.model.element.TypeElement;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+
 import static javax.tools.Diagnostic.Kind.ERROR;
 
 
 /**
  * Created by slim on 4/24/14.
  */
-@SupportedAnnotationTypes({"*" })
+@SupportedAnnotationTypes({"*"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class JzonAnnotationVerifier extends AbstractProcessor {
 
     public static Set<TypeElement> _notChecked = new HashSet<>();
-    private Consumer<TypeElement> error = (e ) -> processingEnv.getMessager().printMessage(ERROR, e.getQualifiedName() +" must be annotated by @Jzon annotation !" );
+    private Consumer<TypeElement> error = (e) -> processingEnv.getMessager().printMessage(ERROR, e.getQualifiedName() + " must be annotated by @Jzon annotation !");
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-        if(roundEnv.processingOver()) return false;
-            populateAllMappers(roundEnv);
+        if (roundEnv.processingOver()) return false;
+        populateAllMappers(roundEnv);
         return true;
     }
 

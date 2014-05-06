@@ -1,9 +1,9 @@
 package org.technozor.jzon.internal.processor;
 
 
-import org.technozor.jzon.Writer;
 import org.technozor.jzon.Jzon;
-import javax.annotation.processing.Messager;
+import org.technozor.jzon.Writer;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
@@ -12,47 +12,40 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementScanner8;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
-import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import static org.technozor.jzon.internal.processor.JzonAnnotationVerifier.*;
+
+import static org.technozor.jzon.internal.processor.JzonAnnotationVerifier._notChecked;
 
 
 /**
  * Created by slim on 4/28/14.
  */
-public class CodeAnalyzerTreeVisitor extends ElementScanner8<Void,ProcessingEnvironment>  {
+public class CodeAnalyzerTreeVisitor extends ElementScanner8<Void, ProcessingEnvironment> {
 
+    static final Predicate<TypeMirror> declaredPredicate = x -> x.getKind().equals(TypeKind.DECLARED);
+    static final Predicate<Element> annotationPredicate = x -> x.getKind().equals(ElementKind.ANNOTATION_TYPE);
+    static final Function<Element, TypeElement> castToTypeElement = x -> (TypeElement) x;
     final ProcessingEnvironment pe;
-    final Elements elementUtils ;
-
+    final Elements elementUtils;
     final Types typeUtils;
     final Predicate<TypeElement> writerPredicate;
     final Predicate<TypeElement> jzonPredicate;
-    static final Predicate<TypeMirror> declaredPredicate = x -> x.getKind().equals(TypeKind.DECLARED);
-    static final Predicate<Element> annotationPredicate = x -> x.getKind().equals(ElementKind.ANNOTATION_TYPE);
-    static final Function<Element,TypeElement> castToTypeElement = x -> (TypeElement) x;
-    private final Predicate<TypeElement >isJzonAnnotationPresent ;
+    private final Predicate<TypeElement> isJzonAnnotationPresent;
 
-    private final Function<ProcessingEnvironment,Elements> toElems = ProcessingEnvironment::getElementUtils;
-
-    private final BiPredicate<TypeElement,Class> hasQualifiedName;
-
-
-
+    private final Function<ProcessingEnvironment, Elements> toElems = ProcessingEnvironment::getElementUtils;
+    private final BiPredicate<TypeElement, Class> hasQualifiedName;
 
 
     public CodeAnalyzerTreeVisitor(ProcessingEnvironment pe) {
         this.pe = pe;
         elementUtils = toElems.apply(pe);
-        hasQualifiedName=  (x,y) -> elementUtils.getName(y.getCanonicalName()).equals(x.getQualifiedName());
-        writerPredicate = x ->  hasQualifiedName.test(x,Writer.class);
-        jzonPredicate   = x ->   hasQualifiedName.test(x, Jzon.class);
+        hasQualifiedName = (x, y) -> elementUtils.getName(y.getCanonicalName()).equals(x.getQualifiedName());
+        writerPredicate = x -> hasQualifiedName.test(x, Writer.class);
+        jzonPredicate = x -> hasQualifiedName.test(x, Jzon.class);
         typeUtils = pe.getTypeUtils();
         isJzonAnnotationPresent = x -> isJzonAnnotationPresent(x);
-
     }
 
     @Override
@@ -62,8 +55,8 @@ public class CodeAnalyzerTreeVisitor extends ElementScanner8<Void,ProcessingEnvi
             TypeMirror typeMirror = e.asType();
             Element asElement = typeUtils.asElement(typeMirror);
             if (asElement.getKind().isInterface()
-                    &&  writerPredicate.test((TypeElement) asElement) ==true
-                    &&  declaredPredicate.test(typeMirror)) {
+                    && writerPredicate.test((TypeElement) asElement) == true
+                    && declaredPredicate.test(typeMirror)) {
 
                 DeclaredType dt = (DeclaredType) typeMirror;
 
@@ -83,7 +76,7 @@ public class CodeAnalyzerTreeVisitor extends ElementScanner8<Void,ProcessingEnvi
     }
 
     boolean isJzonAnnotationPresent(TypeElement typeElement) {
-        return  typeElement.getAnnotationMirrors()
+        return typeElement.getAnnotationMirrors()
                 .stream()
                 .map(AnnotationMirror::getAnnotationType)
                 .map(DeclaredType::asElement)

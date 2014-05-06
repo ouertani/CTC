@@ -8,15 +8,15 @@ import org.technozor.jzon.Writer;
  */
 public class Main {
 
-    static Writer<Person> writer = JzonWriterFactory.writer( Person.class);
-    static Writer<Car> carWriter = JzonWriterFactory.writer ( Car.class);
-    public static void main(String[] args) {
+    static Writer<Person> writer = JzonWriterFactory.writer(Person.class);
+    static Writer<Car> carWriter = JzonWriterFactory.writer(Car.class);
 
+    public static void main(String[] args) {
 
 
         Person pa = new Person();
         String apply = writer.apply(pa);
-        System.out.println("----------"+apply);
+        System.out.println("----------" + apply);
 
 
         String apply1 = carWriter.apply(new Car());
