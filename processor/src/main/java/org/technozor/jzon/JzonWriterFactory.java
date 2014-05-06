@@ -17,20 +17,17 @@ public class JzonWriterFactory {
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
-
         try {
             String className = clazz.getCanonicalName() + JzonConstants.MAPPER_CLASS_SUFFIX;
             Class<Writer<@Jzon T>> mapperImpl  = (Class<Writer<@Jzon T>>) classLoader.loadClass(className);
-            MethodHandle constructor = lookup.findConstructor(mapperImpl, methodType(Void.class));
+            MethodHandle constructor = MethodHandles.lookup().findConstructor(mapperImpl, methodType(Void.class));
             return (Writer<T>) constructor.invoke();
         }  catch (Throwable throwable) {
-            toRuntimeException(throwable);
+           return toRuntimeException(throwable);
         }
-        return null;
     }
     @SuppressWarnings("unchecked")
-    private static <T extends Throwable> void toRuntimeException(Throwable throwable) throws T{
+    private static <T extends Throwable> T toRuntimeException(Throwable throwable) throws T{
         throw (T) throwable;
     }
 
