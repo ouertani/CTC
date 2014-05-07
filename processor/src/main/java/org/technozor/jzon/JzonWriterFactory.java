@@ -24,12 +24,13 @@ public class JzonWriterFactory {
             MethodHandle constructor = MethodHandles.lookup().findConstructor(mapperImpl, methodType(Void.class));
             return (Writer<T>) constructor.invoke();
         } catch (Throwable throwable) {
-            return toRuntimeException(throwable);
+            toRuntimeException(throwable);
+            return null;
         }
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends Throwable> T toRuntimeException(Throwable throwable) throws T {
+    private static <T extends Throwable> void toRuntimeException(Throwable throwable) throws T {
         throw (T) throwable;
     }
 
