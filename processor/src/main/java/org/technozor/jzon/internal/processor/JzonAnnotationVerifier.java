@@ -5,8 +5,10 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static javax.tools.Diagnostic.Kind.ERROR;
 
@@ -25,21 +27,10 @@ public class JzonAnnotationVerifier extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
         if (roundEnv.processingOver()) return false;
-        populateAllMappers(roundEnv);
-        return true;
-    }
-
-    @Override
-    public synchronized void init(ProcessingEnvironment processingEnv) {
-        super.init(processingEnv);
-    }
-
-
-    private void populateAllMappers(RoundEnvironment roundEnv) {
         CodeAnalyzerTreeVisitor visitor = new CodeAnalyzerTreeVisitor(processingEnv);
         roundEnv.getRootElements().forEach(visitor::scan);
         _notChecked.forEach(error);
+        return true;
     }
-
 
 }

@@ -12,9 +12,11 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementScanner8;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static org.technozor.jzon.internal.processor.JzonAnnotationVerifier._notChecked;
 
@@ -60,7 +62,7 @@ public class CodeAnalyzerTreeVisitor extends ElementScanner8<Void, ProcessingEnv
 
                 DeclaredType dt = (DeclaredType) typeMirror;
 
-                dt.getTypeArguments()
+               dt.getTypeArguments()
                         .stream()
                         .map(typeUtils::asElement)
                         .filter(x -> x.getKind().isClass())
@@ -68,6 +70,7 @@ public class CodeAnalyzerTreeVisitor extends ElementScanner8<Void, ProcessingEnv
                         .filter(isJzonAnnotationPresent.negate())
                         .forEach(_notChecked::add);
             }
+
 
         } catch (Exception ex) {
 
