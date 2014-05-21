@@ -21,7 +21,7 @@ public class JzonWriterFactory {
         try {
             String className = clazz.getCanonicalName() + JzonConstants.MAPPER_CLASS_SUFFIX;
             Class<Writer<@Jzon T>> jzonImpl = (Class<Writer<@Jzon T>>) classLoader.loadClass(className);
-            MethodHandle constructor = MethodHandles.lookup().findConstructor(jzonImpl, methodType(Void.class));
+            MethodHandle constructor = MethodHandles.publicLookup().findConstructor(jzonImpl, methodType(Void.class));
             return (Writer<T>) constructor.invoke();
         } catch (Throwable throwable) {
             return toRuntimeException (throwable);

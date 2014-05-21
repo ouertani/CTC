@@ -24,23 +24,22 @@ import static org.technozor.jzon.internal.processor.JzonAnnotationVerifier._notC
 /**
  * Created by slim on 4/28/14.
  */
-public class CodeAnalyzerTreeVisitor extends ElementScanner8<Void, ProcessingEnvironment> {
+public class JzonAnnotationVisitor extends ElementScanner8<Void, ProcessingEnvironment> {
 
     static final Predicate<TypeMirror> declaredPredicate = x -> x.getKind().equals(TypeKind.DECLARED);
     static final Predicate<Element> annotationPredicate = x -> x.getKind().equals(ElementKind.ANNOTATION_TYPE);
     static final Function<Element, TypeElement> castToTypeElement = x -> (TypeElement) x;
+    private final Function<ProcessingEnvironment, Elements> toElems = ProcessingEnvironment::getElementUtils;
     final ProcessingEnvironment pe;
     final Elements elementUtils;
     final Types typeUtils;
     final Predicate<TypeElement> writerPredicate;
     final Predicate<TypeElement> jzonPredicate;
     private final Predicate<TypeElement> isJzonAnnotationPresent;
-
-    private final Function<ProcessingEnvironment, Elements> toElems = ProcessingEnvironment::getElementUtils;
     private final BiPredicate<TypeElement, Class> hasQualifiedName;
 
 
-    public CodeAnalyzerTreeVisitor(ProcessingEnvironment pe) {
+    public JzonAnnotationVisitor(ProcessingEnvironment pe) {
         this.pe = pe;
         elementUtils = toElems.apply(pe);
         hasQualifiedName = (x, y) -> elementUtils.getName(y.getCanonicalName()).equals(x.getQualifiedName());
@@ -52,6 +51,7 @@ public class CodeAnalyzerTreeVisitor extends ElementScanner8<Void, ProcessingEnv
 
     @Override
     public Void visitVariable(VariableElement e, ProcessingEnvironment processingEnvironment) {
+
 
         try {
             TypeMirror typeMirror = e.asType();
