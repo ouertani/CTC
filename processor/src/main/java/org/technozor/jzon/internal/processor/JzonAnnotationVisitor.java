@@ -35,7 +35,6 @@ public class JzonAnnotationVisitor extends ElementScanner8<Void, ProcessingEnvir
     final Types typeUtils;
     final Predicate<TypeElement> writerPredicate;
     final Predicate<TypeElement> jzonPredicate;
-    private final Predicate<TypeElement> isJzonAnnotationPresent;
     private final BiPredicate<TypeElement, Class> hasQualifiedName;
 
 
@@ -46,7 +45,6 @@ public class JzonAnnotationVisitor extends ElementScanner8<Void, ProcessingEnvir
         writerPredicate = x -> hasQualifiedName.test(x, Writer.class);
         jzonPredicate = x -> hasQualifiedName.test(x, Jzon.class);
         typeUtils = pe.getTypeUtils();
-        isJzonAnnotationPresent = x -> isJzonAnnotationPresent(x);
     }
 
     @Override
@@ -67,7 +65,7 @@ public class JzonAnnotationVisitor extends ElementScanner8<Void, ProcessingEnvir
                         .map(typeUtils::asElement)
                         .filter(x -> x.getKind().isClass())
                         .map(castToTypeElement)
-                        .filter(isJzonAnnotationPresent.negate())
+                        .filter(this::isJzonAnnotationPresent)
                         .forEach(_notChecked::add);
             }
 
@@ -79,7 +77,7 @@ public class JzonAnnotationVisitor extends ElementScanner8<Void, ProcessingEnvir
     }
 
     boolean isJzonAnnotationPresent(TypeElement typeElement) {
-        return typeElement.getAnnotationMirrors()
+        return ! typeElement.getAnnotationMirrors()
                 .stream()
                 .map(AnnotationMirror::getAnnotationType)
                 .map(DeclaredType::asElement)
