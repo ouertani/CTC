@@ -49,15 +49,13 @@ public class JzonAnnotationGenerator extends AbstractProcessor {
     private Function<List<? extends Element>, String> toJson = x -> "{" + x.stream().map(elem2String).collect(Collectors.joining(",")) + "}";
     private Consumer<Exception> warn = e -> processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, e.getMessage());
 
-    private Consumer<TypeElement> generateJsonclass = x -> generateJsonclass(x);
-
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         roundEnv.getElementsAnnotatedWith(org.technozor.jzon.Jzon.class)
                 .stream()
                 .filter(element -> element.getKind().isClass())
                 .map(x -> (TypeElement) x)
-                .forEach(generateJsonclass);
+                .forEach(this::generateJsonclass);
         return false;
     }
 
